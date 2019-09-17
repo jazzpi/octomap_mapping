@@ -362,6 +362,15 @@ void OctomapServer::insertScan(const tf::Point& sensorOriginTf, const PCLPointCl
     ROS_ERROR_STREAM("Could not generate Key for origin "<<sensorOrigin);
   }
 
+  // Use faster, but less accurate, insertion
+  Pointcloud pc;
+  for (PCLPointCloud::const_iterator it = nonground.begin(); it != nonground.end(); ++it){
+    pc.push_back(it->x, it->y, it->z);
+  }
+  m_octree->insertPointCloud (pc, sensorOrigin, m_maxRange, true, true);
+  m_octree->updateInnerOccupancy();
+
+  #if false
 #ifdef COLOR_OCTOMAP_SERVER
   unsigned char* colors = new unsigned char[3];
 #endif
@@ -466,6 +475,8 @@ void OctomapServer::insertScan(const tf::Point& sensorOriginTf, const PCLPointCl
   maxPt = m_octree->keyToCoord(m_updateBBXMax);
   ROS_DEBUG_STREAM("Updated area bounding box: "<< minPt << " - "<<maxPt);
   ROS_DEBUG_STREAM("Bounding box keys (after): " << m_updateBBXMin[0] << " " <<m_updateBBXMin[1] << " " << m_updateBBXMin[2] << " / " <<m_updateBBXMax[0] << " "<<m_updateBBXMax[1] << " "<< m_updateBBXMax[2]);
+
+  #endif // false
 
   if (m_compressMap)
     m_octree->prune();
